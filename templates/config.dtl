@@ -1,0 +1,33 @@
+{rabbitmq_shovel, [
+    {shovels, [
+    {% for shovel in shovels %}
+        { {{ shovel.name }}, [
+            {sources, [
+                {broker, {{ shovel.source }} },
+                {declarations, [
+                {% for declaration in shovel.declarations %}
+                    {{ declaration }}
+                {% endfor %}
+                ]}
+            ]},
+
+            {destinations, [
+                {broker, {{ shovel.destination }} },
+                {declarations, [
+                {% for declaration in shovel.declarations %}
+                    {{ declaration }}
+                {% endfor %}
+                ]}
+            ]},
+
+            {queue, {{ shovel.queue }} },
+
+            {prefetch_count, 1000},
+            {ack_mode, on_confirm},
+            {publish_properties, [{delivery_mode, 2}]},
+            {publish_fields, []},
+            {reconnect_delay, 10}
+        ]}
+    {% endfor %}
+    ]}
+]}
