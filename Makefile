@@ -25,12 +25,12 @@ test: build
 # Run
 #
 
-ERL=exec erl -pa ebin -sname stetson
+ERL=exec erl -pa ebin -sname dig
 
 .PHONY: boot noboot
 
 boot: build
-	$(ERL) -s stetson
+	$(ERL) -s dig
 
 noboot: build
 	$(ERL)
