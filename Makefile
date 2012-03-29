@@ -13,7 +13,10 @@ clean:
 	rm -rf ebin
 	$(REBAR) skip_deps=true clean
 
-build:
+deps:
+	$(REBAR) get-deps
+
+build: deps
 	$(REBAR) compile
 	$(MAKE) xref
 
