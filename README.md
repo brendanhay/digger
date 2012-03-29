@@ -4,10 +4,10 @@ Dig
 [![Build Status](https://secure.travis-ci.org/brendanhay/dig.png)](http://travis-ci.org/brendanhay/dig)
 
 
-<a name="contribute" />
+<a name="introduction" />
 
-Contribute
-----------
+Introduction
+------------
 
 Dig is a command-line tool to generate Shovel configurations for RabbitMQ.
 
