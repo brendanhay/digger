@@ -36,12 +36,17 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
+-compile(export_all).
+
 %%
 %% API
 %%
 
-main([])       -> io:fwrite(usage());
-main(_Configs) -> io:fwrite("~s", [render()]).
+main([]) ->
+    main(["bin/digger.conf"]);
+main([Path]) ->
+    {ok, Config} = file:consult(Path),
+    io:fwrite("~s", [render(Config)]).
 
 %%
 %% Private
@@ -50,11 +55,13 @@ main(_Configs) -> io:fwrite("~s", [render()]).
 usage() ->
     io_lib:fwrite("Usage: ~s CONFIG_FILE~n", [?MODULE]).
 
-render() ->
+render([Config]) ->
     {ok, D} = config_dtl:render([
-        {shovels, [shovel(S, test()) || S <- lookup(sources, test())]}
+        {shovels, lists:concat([shovels(C) || C <- Config])}
     ]),
     D.
+
+shovels(Ctx) -> [shovel(S, Ctx) || S <- lookup(sources, Ctx)].
 
 shovel(Source, Ctx) ->
     Destination = lookup(destination, Ctx),
@@ -96,22 +103,6 @@ binding_declarations(Source, Ctx) ->
         {queue, bin(queue_name(Source, Ctx))},
         {routing_key, bin(K)}
     ]} || K <- lookup(routing_keys, Ctx)].
-
-test() ->
-    [{sources, [
-         "amqp://guest:guest@hostfoo",
-         "amqp://guest:guest@hostbar"
-     ]},
-     {destination, "amqp://guest:guest@baz.int"},
-     {exchange, [
-         {name, "exchangename"},
-         {type, <<"direct">>},
-         durable
-     ]},
-     {routing_keys, [
-         "Track",
-         "Tag"
-     ]}].
 
 lookup(Key, List) ->
     {Key, Value} = lists:keyfind(Key, 1, List),
