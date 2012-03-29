@@ -74,7 +74,7 @@ shovel(Source, Ctx) ->
          queue_declaration(Source, Ctx)
          | binding_declarations(Source, Ctx)
      ]},
-     {queue, escape(Queue)}].
+     {queue, "<<" ++ escape(Queue) ++ ">>"}].
 
 shovel_name(Source, Ctx) ->
     {ok, #amqp_params_network{host = Host}} = amqp_uri:parse(Source),
@@ -84,7 +84,7 @@ queue_name(Source, Ctx) -> shovel_name(Source, Ctx) ++ ".shovel".
 
 queue_declaration(Source, Ctx) ->
     {'queue.declare', [
-        {queue, queue_name(Source, Ctx)},
+        {queue, bin(queue_name(Source, Ctx))},
         durable
     ]}.
 
