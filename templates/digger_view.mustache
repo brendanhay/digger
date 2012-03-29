@@ -1,0 +1,24 @@
+{rabbitmq_shovel, [
+    {shovels, [
+    {{#shovels}}
+        { {{name}}, [
+            {sources, [
+                {broker, {{source}} },
+                {declarations, [
+                ]}
+            ]},
+            {destinations, [
+                {broker, {{destination}} },
+                {declarations, [
+                ]}
+            ]},
+            {queue, {{ queue }} },
+            {prefetch_count, {{prefetch_count}} },
+            {ack_mode, {{ack_mode}} },
+            {publish_properties, {{publish_properties}} },
+            {publish_fields, {{publish_fields}} },
+            {reconnect_delay, {{reconnect_delay}} }
+        ]}
+    {{/shovels}}
+    ]}
+]}
