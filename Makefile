@@ -7,6 +7,7 @@ REBAR=`which rebar`
 .PHONY: build
 
 all: build
+	$(REBAR) skip_deps=true escriptize
 
 clean:
 	rm -rf ebin
@@ -19,21 +20,6 @@ build:
 test: build
 	rm -rf .eunit
 	$(REBAR) skip_deps=true eunit
-
-
-#
-# Run
-#
-
-ERL=exec erl -pa ebin -sname dig
-
-.PHONY: boot noboot
-
-boot: build
-	$(ERL) -s dig
-
-noboot: build
-	$(ERL)
 
 #
 # Analysis

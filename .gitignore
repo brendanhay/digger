@@ -18,6 +18,7 @@ rel/package
 # Exec
 rebar
 erldocs
+digger
 
 # EUnit
 .eunit
