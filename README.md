@@ -9,7 +9,7 @@ Dig
 Contribute
 ----------
 
-Dig is a commandline tool to generate shovel configurations for RabbitMQ.
+Dig is a command-line tool to generate Shovel configurations for RabbitMQ.
 
 
 <a name="contribute" />
