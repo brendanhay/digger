@@ -24,7 +24,7 @@
 
             {prefetch_count, 1000},
             {ack_mode, on_confirm},
-            {publish_properties, [{delivery_mode, 2}]},
+            {publish_properties, []},
             {publish_fields, []},
             {reconnect_delay, 10}
         ]}

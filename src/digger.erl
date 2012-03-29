@@ -51,19 +51,21 @@ usage() ->
     io_lib:fwrite("Usage: ~s CONFIG_FILE~n", [?MODULE]).
 
 render() ->
-    Sources = lookup(sources, test()),
     {ok, D} = config_dtl:render([
-        {shovels, [shovel(S, test()) || S <- Sources]}
+        {shovels, [shovel(S, test()) || S <- lookup(sources, test())]}
     ]),
     D.
 
 shovel(Source, Ctx) ->
     Destination = lookup(destination, Ctx),
     Queue = queue_name(Source, Ctx),
-    [{source, escape(Source)},
+    [{name, shovel_name(Source, Ctx)},
+     {source, escape(Source)},
      {destination, escape(Destination)},
      {declarations, [
-         exchange_declaration(Ctx)
+         exchange_declaration(Ctx),
+         queue_declaration(Source, Ctx)
+         | binding_declarations(Source, Ctx)
      ]},
      {queue, escape(Queue)}].
 
@@ -73,14 +75,27 @@ shovel_name(Source, Ctx) ->
 
 queue_name(Source, Ctx) -> shovel_name(Source, Ctx) ++ ".shovel".
 
+queue_declaration(Source, Ctx) ->
+    {'queue.declare', [
+        {queue, queue_name(Source, Ctx)},
+        durable
+    ]}.
+
 exchange_name(Ctx) -> lookup(name, lookup(exchange, Ctx)).
 
 %% Use partial views for each of the declaration types and format specifically
 exchange_declaration(Ctx) ->
-    Args = lists:keydelete(name, 1, lookup(exchange, Ctx)),
     {'exchange.declare', [
-        {exchange, list_to_binary(exchange_name(Ctx))}
-    ] ++ Args}.
+        {exchange, bin(exchange_name(Ctx))}
+        | lists:keydelete(name, 1, lookup(exchange, Ctx))
+    ]}.
+
+binding_declarations(Source, Ctx) ->
+    [{'queue.bind', [
+        {exchange, bin(exchange_name(Ctx))},
+        {queue, bin(queue_name(Source, Ctx))},
+        {routing_key, bin(K)}
+    ]} || K <- lookup(routing_keys, Ctx)].
 
 test() ->
     [{sources, [
@@ -92,6 +107,10 @@ test() ->
          {name, "exchangename"},
          {type, <<"direct">>},
          durable
+     ]},
+     {routing_keys, [
+         "Track",
+         "Tag"
      ]}].
 
 lookup(Key, List) ->
@@ -99,3 +118,7 @@ lookup(Key, List) ->
     Value.
 
 escape(Str) -> lists:concat(["\"", Str, "\""]).
+
+bin(List) when is_list(List)  -> list_to_binary(List);
+bin(Atom) when is_atom(Atom)  -> atom_to_binary(Atom, latin1);
+bin(Bin)  when is_binary(Bin) -> Bin.
