@@ -1,0 +1,25 @@
+{rabbitmq_shovel, [
+    {shovels, [{% for shovel in shovels %}
+        {% templatetag openbrace %}{{ shovel.name }}, [
+            {sources, [
+                {broker, {{ shovel.source }}{% templatetag closebrace %},
+                {declarations, [{% for declaration in shovel.declarations %}
+                    {{ declaration }}{% if not forloop.last %},{% endif %}{% endfor %}
+                ]}
+            ]},
+            {destinations, [
+                {broker, {{ shovel.destination }}{% templatetag closebrace %},
+                {declarations, [
+                    {{ shovel.exchange.declaration }}
+                ]}
+            ]},
+            {queue, {{ shovel.queue }}{% templatetag closebrace %},
+            {prefetch_count, 1000},
+            {ack_mode, on_confirm},
+            {publish_properties, []},
+            {publish_fields, [{publish_fields,[{exchange,{{ shovel.exchange.name }}{% templatetag closebrace %}]}]},
+            {reconnect_delay, 10}
+        ]}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ]}
+]}

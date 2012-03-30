@@ -4,7 +4,7 @@
 
 REBAR=`which rebar`
 
-.PHONY: build
+.PHONY: build deps
 
 all: build
 	$(REBAR) skip_deps=true escriptize
