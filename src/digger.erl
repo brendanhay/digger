@@ -25,7 +25,7 @@
 -spec main([string()]) -> ok.
 %% @doc
 main([]) ->
-    {ok, Json} = file:read_file("bin/digger.json"),
+    {ok, Json} = file:read_file("digger.json"),
     main([Json]);
 main([Json]) ->
     [{_Key, Config}] = mochijson2:decode(Json, [{format, proplist}]),
