@@ -1,25 +1,24 @@
-{rabbitmq_shovel, [
-    {shovels, [{% for shovel in shovels %}
-        {% templatetag openbrace %}{{ shovel.name }}, [
-            {sources, [
-                {broker, "{{ shovel.source }}"},
-                {declarations, [{% for declaration in shovel.declarations %}
-                    {{ declaration }}{% if not forloop.last %},{% endif %}{% endfor %}
-                ]}
-            ]},
-            {destinations, [
-                {broker, "{{ shovel.destination }}"},
-                {declarations, [
-                    {{ shovel.exchange.declaration }}
-                ]}
-            ]},
-            {queue, <<"{{ shovel.queue }}">>},
-            {prefetch_count, 1000},
-            {ack_mode, on_confirm},
-            {publish_properties, []},
-            {publish_fields, []},
-            {reconnect_delay, 10}
-        ]}{% if not forloop.last %},{% endif %}
-    {% endfor %}
-    ]}
+{shovels, [
+{% for shovel in shovels %}
+    {% templatetag openbrace %}{{ shovel.name }}, [
+        {sources, [
+            {broker, "{{ shovel.source }}"},
+            {declarations, [{% for declaration in shovel.declarations %}
+                {{ declaration }}{% if not forloop.last %},{% endif %}{% endfor %}
+            ]}
+        ]},
+        {destinations, [
+            {broker, "{{ shovel.destination }}"},
+            {declarations, [
+                {{ shovel.exchange.declaration }}
+            ]}
+        ]},
+        {queue, <<"{{ shovel.queue }}">>},
+        {prefetch_count, 1000},
+        {ack_mode, on_confirm},
+        {publish_properties, []},
+        {publish_fields, []},
+        {reconnect_delay, 10}
+    ]}{% if not forloop.last %},{% endif %}
+{% endfor %}
 ]}
