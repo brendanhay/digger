@@ -9,7 +9,7 @@ Digger
 Introduction
 ------------
 
-Digger is a quick and dirty command-line tool to generate Shovel configurations for connection brokers using a `publish-one/subscribe-many` model for RabbitMQ.
+Digger is a quick and dirty command-line tool to generate a RabbitMQ Shovel configuration entry for a `publish-one/subscribe-many` model.
 
 **Input**
 
