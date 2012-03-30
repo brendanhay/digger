@@ -28,25 +28,30 @@ main([]) ->
     main(["bin/digger.conf"]);
 main([Path]) ->
     {ok, Config} = file:consult(Path),
-    io:fwrite("~s", [render(Config)]).
-
-TODO load the resulting string to check erlang syntax
+    Rendered = render(Config),
+    validate(Rendered),
+    io:fwrite("~s", [Rendered]).
 
 %%
 %% Private
 %%
 
--spec usage() -> ok.
-%% @private
-usage() -> io_lib:fwrite("Usage: ~s CONFIG_FILE~n", [?MODULE]).
-
 -spec render(config()) -> string().
 %% @private
 render(Config) ->
+    [Shovels] = hd([[shovels(S) || S <- C] || C <- Config]),
+    A =        {shovels, Shovels},
     {ok, D} = config_dtl:render([
-        {shovels, lists:concat([shovels(C) || C <- Config])}
+                                 A
     ]),
     D.
+
+%% @validate
+validate(Result) ->
+    List = binary_to_list(iolist_to_binary(io_lib:fwrite("~s.", [Result]))),
+    {ok, Scanned, _} = erl_scan:string(List),
+    {ok, Parsed} = erl_parse:parse_exprs(Scanned),
+    erl_eval:exprs(Parsed, []).
 
 -spec shovels(context()) -> [].
 %% @private
