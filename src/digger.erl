@@ -74,6 +74,10 @@ shovel(Source, Ctx) ->
          queue_declaration(Source, Ctx)
          | binding_declarations(Source, Ctx)
      ]},
+     {exchange, [
+         {declaration, exchange_declaration(Ctx)},
+         {name, "<<" ++ escape(exchange_name(Ctx)) ++ ">>"}
+     ]},
      {queue, "<<" ++ escape(Queue) ++ ">>"}].
 
 shovel_name(Source, Ctx) ->
@@ -83,26 +87,26 @@ shovel_name(Source, Ctx) ->
 queue_name(Source, Ctx) -> shovel_name(Source, Ctx) ++ ".shovel".
 
 queue_declaration(Source, Ctx) ->
-    {'queue.declare', [
+    sterm({'queue.declare', [
         {queue, bin(queue_name(Source, Ctx))},
         durable
-    ]}.
+    ]}).
 
 exchange_name(Ctx) -> lookup(name, lookup(exchange, Ctx)).
 
 %% Use partial views for each of the declaration types and format specifically
 exchange_declaration(Ctx) ->
-    {'exchange.declare', [
+    sterm({'exchange.declare', [
         {exchange, bin(exchange_name(Ctx))}
         | lists:keydelete(name, 1, lookup(exchange, Ctx))
-    ]}.
+    ]}).
 
 binding_declarations(Source, Ctx) ->
-    [{'queue.bind', [
+    [sterm({'queue.bind', [
         {exchange, bin(exchange_name(Ctx))},
         {queue, bin(queue_name(Source, Ctx))},
         {routing_key, bin(K)}
-    ]} || K <- lookup(routing_keys, Ctx)].
+     ]}) || K <- lookup(routing_keys, Ctx)].
 
 lookup(Key, List) ->
     {Key, Value} = lists:keyfind(Key, 1, List),
@@ -113,3 +117,5 @@ escape(Str) -> lists:concat(["\"", Str, "\""]).
 bin(List) when is_list(List)  -> list_to_binary(List);
 bin(Atom) when is_atom(Atom)  -> atom_to_binary(Atom, latin1);
 bin(Bin)  when is_binary(Bin) -> Bin.
+
+sterm(Term) -> iolist_to_binary(io_lib:fwrite("~600p", [Term])).
