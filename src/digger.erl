@@ -25,9 +25,10 @@
 -spec main([string()]) -> ok.
 %% @doc
 main([]) ->
-    main(["bin/digger.conf"]);
-main([Path]) ->
-    {ok, Config} = file:consult(Path),
+    {ok, Json} = file:read_file("bin/digger.json"),
+    main([Json]);
+main([Json]) ->
+    [{_Key, Config}] = mochijson2:decode(Json, [{format, proplist}]),
     Rendered = render(Config),
     validate(Rendered),
     io:fwrite("~s", [Rendered]).
@@ -39,11 +40,8 @@ main([Path]) ->
 -spec render(config()) -> string().
 %% @private
 render(Config) ->
-    [Shovels] = hd([[shovels(S) || S <- C] || C <- Config]),
-    A =        {shovels, Shovels},
-    {ok, D} = config_dtl:render([
-                                 A
-    ]),
+    Shovels = lists:usort(lists:concat([shovels(C) || C <- Config])),
+    {ok, D} = config_dtl:render([{shovels, Shovels}]),
     D.
 
 %% @validate
@@ -63,8 +61,8 @@ shovel(Source, Ctx) ->
     Destination = lookup(destination, Ctx),
     Queue = queue_name(Source, Ctx),
     [{name, shovel_name(Source, Ctx)},
-     {source, escape(Source)},
-     {destination, escape(Destination)},
+     {source, Source},
+     {destination, Destination},
      {declarations, [
          exchange_declaration(Ctx),
          queue_declaration(Source, Ctx)
@@ -72,15 +70,15 @@ shovel(Source, Ctx) ->
      ]},
      {exchange, [
          {declaration, exchange_declaration(Ctx)},
-         {name, "<<" ++ escape(exchange_name(Ctx)) ++ ">>"}
+         {name, exchange_name(Ctx)}
      ]},
-     {queue, "<<" ++ escape(Queue) ++ ">>"}].
+     {queue, Queue}].
 
 -spec shovel_name(string(), context()) -> string().
 %% @private
 shovel_name(Source, Ctx) ->
-    {ok, #amqp_params_network{host = Host}} = amqp_uri:parse(Source),
-    string:join([exchange_name(Ctx), Host], ".").
+    {ok, #amqp_params_network{host = Host}} = amqp_uri:parse(binary_to_list(Source)),
+    string:join([binary_to_list(exchange_name(Ctx)), Host], ".").
 
 -spec queue_name(string(), context()) -> string().
 %% @private
@@ -101,10 +99,16 @@ exchange_name(Ctx) -> lookup(name, lookup(exchange, Ctx)).
 -spec exchange_declaration(context()) -> string().
 %% @private
 exchange_declaration(Ctx) ->
-    sterm({'exchange.declare', [
+    Args = [
         {exchange, bin(exchange_name(Ctx))}
-        | lists:keydelete(name, 1, lookup(exchange, Ctx))
-    ]}).
+        | lists:keydelete(<<"name">>, 1, lookup(exchange, Ctx))
+    ],
+    sterm({'exchange.declare',
+           lists:keydelete(<<"durable">>, 1,
+                           case lookup(<<"durable">>, Args) of
+                               true  -> Args ++ [durable];
+                               false -> Args
+                           end)}).
 
 -spec binding_declarations(string(), context()) -> string().
 %% @private
@@ -118,12 +122,8 @@ binding_declarations(Source, Ctx) ->
 -spec lookup(atom(), [proplists:property()]) -> any().
 %% @private
 lookup(Key, List) ->
-    {Key, Value} = lists:keyfind(Key, 1, List),
+    {_Key, Value} = lists:keyfind(bin(Key), 1, List),
     Value.
-
--spec escape(string()) -> string().
-%% @private
-escape(Str) -> lists:concat(["\"", Str, "\""]).
 
 -spec bin(list() | atom() | binary()) -> binary().
 %% @private
@@ -133,4 +133,4 @@ bin(Bin)  when is_binary(Bin) -> Bin.
 
 -spec sterm(term()) -> binary().
 %% @private
-sterm(Term) -> iolist_to_binary(io_lib:fwrite("~600p", [Term])).
+sterm(Term) -> io_lib:format("~600p", [Term]).

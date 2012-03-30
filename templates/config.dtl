@@ -2,22 +2,22 @@
     {shovels, [{% for shovel in shovels %}
         {% templatetag openbrace %}{{ shovel.name }}, [
             {sources, [
-                {broker, {{ shovel.source }}{% templatetag closebrace %},
+                {broker, "{{ shovel.source }}"},
                 {declarations, [{% for declaration in shovel.declarations %}
                     {{ declaration }}{% if not forloop.last %},{% endif %}{% endfor %}
                 ]}
             ]},
             {destinations, [
-                {broker, {{ shovel.destination }}{% templatetag closebrace %},
+                {broker, "{{ shovel.destination }}"},
                 {declarations, [
                     {{ shovel.exchange.declaration }}
                 ]}
             ]},
-            {queue, {{ shovel.queue }}{% templatetag closebrace %},
+            {queue, <<"{{ shovel.queue }}">>},
             {prefetch_count, 1000},
             {ack_mode, on_confirm},
             {publish_properties, []},
-            {publish_fields, [{publish_fields,[{exchange,{{ shovel.exchange.name }}{% templatetag closebrace %}]}]},
+            {publish_fields, []},
             {reconnect_delay, 10}
         ]}{% if not forloop.last %},{% endif %}
     {% endfor %}
