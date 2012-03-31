@@ -15,7 +15,7 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
--type context() :: [proplists:propery()].
+-type context() :: [proplists:property()].
 -type config()  :: [context()].
 
 %%
